@@ -7,16 +7,12 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
-  if (req.method === 'OPTIONS') {
-  return res.status(200).setHeader('Access-Control-Allow-Origin', '*')
-    .setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-    .setHeader('Access-Control-Allow-Headers', 'Content-Type')
-    .end();
-}
+  // Headers CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-res.setHeader('Access-Control-Allow-Origin', '*');
-res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
@@ -30,13 +26,13 @@ res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   try {
     const { data, error } = await supabase.auth.admin.createUser({
-      console.log('ERRO AUTH ADMIN:', error);
       email,
       password: senha,
       email_confirm: true,
     });
 
     if (error) {
+      console.log('ERRO AUTH ADMIN:', error); // ✅ Aqui é o lugar certo
       return res.status(400).json({ error: error.message });
     }
 
@@ -47,11 +43,12 @@ res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
       .insert([{ id: userId, nome, email, nivel }]);
 
     if (insertError) {
-      return res.status(400).json({ error: 'Usuário criado, mas falha ao salvar dados adicionais.' });
+      return res.status(500).json({ error: 'Usuário criado, mas falha ao salvar dados adicionais.' });
     }
 
     return res.status(200).json({ success: true });
   } catch (err) {
+    console.error('ERRO GERAL:', err); // ⛑️ Para logs inesperados
     return res.status(500).json({ error: 'Erro interno no servidor' });
   }
 }
