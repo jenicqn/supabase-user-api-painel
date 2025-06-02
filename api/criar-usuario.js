@@ -51,4 +51,8 @@ export default async function handler(req, res) {
     console.error('ERRO GERAL:', err); // ⛑️ Para logs inesperados
     return res.status(500).json({ error: 'Erro interno no servidor' });
   }
+  await supabase
+  .from('usuarios_painel')
+  .insert([{ id: userId, nome, email, acesso: nivel }]);
+
 }
