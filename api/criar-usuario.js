@@ -47,7 +47,7 @@ export default async function handler(req, res) {
     }
 
     const userId = data.user.id;
-    const payload = { id: userId, nome, email, acesso: nivel };
+    const payload = { id: userId, nome, email, nivel };
 
     console.log('Payload para insert:', payload);
 
