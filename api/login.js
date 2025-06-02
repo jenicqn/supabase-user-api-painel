@@ -1,4 +1,3 @@
-// /api/login.js
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -7,6 +6,16 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
+  // CORS: libera requisições do seu painel (localhost ou domínio real)
+  res.setHeader('Access-Control-Allow-Origin', '*'); // TEMPORÁRIO — depois use o domínio real
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // Resposta para requisição preflight (CORS)
+  if (req.method === 'OPTIONS') {
+    return res.status(200).json({ message: 'Preflight OK' });
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, message: 'Método não permitido' });
   }
@@ -17,7 +26,7 @@ export default async function handler(req, res) {
     .from('usuarios_painel2')
     .select('*')
     .eq('email', email)
-    .eq('senha', senha) // Idealmente criptografada
+    .eq('senha', senha)
     .single();
 
   if (error || !usuario) {
