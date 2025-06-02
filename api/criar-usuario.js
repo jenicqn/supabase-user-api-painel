@@ -1,4 +1,3 @@
-// api/criar-usuario.js
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -7,12 +6,17 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
-  // Headers CORS
+  if (req.method === 'OPTIONS') {
+    return res.status(200)
+      .setHeader('Access-Control-Allow-Origin', '*')
+      .setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+      .setHeader('Access-Control-Allow-Headers', 'Content-Type')
+      .end();
+  }
+
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  if (req.method === 'OPTIONS') return res.status(200).end();
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
@@ -32,7 +36,6 @@ export default async function handler(req, res) {
     });
 
     if (error) {
-      console.log('ERRO AUTH ADMIN:', error); // ✅ Aqui é o lugar certo
       return res.status(400).json({ error: error.message });
     }
 
@@ -40,19 +43,16 @@ export default async function handler(req, res) {
 
     const { error: insertError } = await supabase
       .from('usuarios_painel')
-      .insert([{ id: userId, nome, email, acesso: nivel }])
+      .insert([{ id: userId, nome, email, acesso: nivel }]);
 
     if (insertError) {
+      console.error('Erro ao salvar na tabela:', insertError);
       return res.status(500).json({ error: 'Usuário criado, mas falha ao salvar dados adicionais.' });
     }
 
     return res.status(200).json({ success: true });
   } catch (err) {
-    console.error('ERRO GERAL:', err); // ⛑️ Para logs inesperados
+    console.error('Erro interno:', err);
     return res.status(500).json({ error: 'Erro interno no servidor' });
   }
-  await supabase
-  .from('usuarios_painel')
-  .insert([{ id: userId, nome, email, acesso: nivel }]);
-
 }
