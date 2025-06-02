@@ -30,6 +30,7 @@ res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   try {
     const { data, error } = await supabase.auth.admin.createUser({
+      console.log('ERRO AUTH ADMIN:', error);
       email,
       password: senha,
       email_confirm: true,
