@@ -18,7 +18,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { data, error } = await supabase.from('usuarios_painel').select('*');
+    const { data, error } = await supabase.from('usuarios_painel2').select('*');
 
     if (error) {
       return res.status(500).json({ error: 'Erro ao buscar usuários' });
