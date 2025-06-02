@@ -11,7 +11,8 @@ export default async function handler(req, res) {
       .setHeader('Access-Control-Allow-Origin', '*')
       .setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
       .setHeader('Access-Control-Allow-Headers', 'Content-Type')
-      .status(200).end();
+      .status(200)
+      .end();
   }
 
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -40,20 +41,23 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: error.message });
     }
 
-    if (!data || !data.user || !data.user.id) {
+    if (!data?.user?.id) {
       console.error('Usuário criado, mas resposta inválida:', data);
       return res.status(500).json({ error: 'ID do usuário não retornado.' });
     }
 
     const userId = data.user.id;
+    const payload = { id: userId, nome, email, acesso: nivel };
+
+    console.log('Payload para insert:', payload);
 
     const { error: insertError } = await supabase
       .from('usuarios_painel')
-      .insert([{ id: userId, nome, email, nivel }]);
+      .insert([payload]);
 
     if (insertError) {
       console.error('Erro ao inserir dados adicionais:', insertError);
-      return res.status(500).json({ error: 'Usuário criado, mas falha ao salvar dados adicionais.' });
+      return res.status(500).json({ error: insertError.message });
     }
 
     return res.status(200).json({ success: true });
