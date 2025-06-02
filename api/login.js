@@ -6,14 +6,12 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
-  // CORS: libera requisições do seu painel (localhost ou domínio real)
-  res.setHeader('Access-Control-Allow-Origin', '*'); // TEMPORÁRIO — depois use o domínio real
+  res.setHeader('Access-Control-Allow-Origin', 'https://painel.smashdocabo.com');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // Resposta para requisição preflight (CORS)
   if (req.method === 'OPTIONS') {
-    return res.status(200).json({ message: 'Preflight OK' });
+    return res.status(200).end();
   }
 
   if (req.method !== 'POST') {
@@ -22,15 +20,30 @@ export default async function handler(req, res) {
 
   const { email, senha } = req.body;
 
+  // 🔐 1. Tenta autenticar pelo Auth do Supabase
+  const authClient = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY // Use a chave pública aqui
+  );
+
+  const { data: authData, error: authError } = await authClient.auth.signInWithPassword({
+    email,
+    password: senha,
+  });
+
+  if (authError || !authData.user) {
+    return res.status(401).json({ success: false, message: 'Email ou senha inválidos' });
+  }
+
+  // 🔎 2. Busca dados extras do painel (nome, nível)
   const { data: usuario, error } = await supabase
     .from('usuarios_painel2')
-    .select('*')
+    .select('id, nome, email, nivel')
     .eq('email', email)
-    .eq('senha', senha)
     .single();
 
   if (error || !usuario) {
-    return res.status(401).json({ success: false, message: 'Credenciais inválidas' });
+    return res.status(200).json({ success: true, usuario: { email } }); // fallback mínimo
   }
 
   return res.status(200).json({ success: true, usuario });
