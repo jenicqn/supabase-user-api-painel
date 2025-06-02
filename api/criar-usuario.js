@@ -6,23 +6,14 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
-  if (req.method === 'OPTIONS') {
-    return res.setHeader('Access-Control-Allow-Origin', '*')
-              .setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-              .setHeader('Access-Control-Allow-Headers', 'Content-Type')
-              .status(200).end();
-  }
-
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Método não permitido' });
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Método não permitido' });
 
   const { nome, email, senha, nivel } = req.body;
-
   if (!nome || !email || !senha || !nivel) {
     return res.status(400).json({ error: 'Campos obrigatórios faltando' });
   }
@@ -31,9 +22,12 @@ export default async function handler(req, res) {
     const { data, error } = await supabase.auth.admin.createUser({
       email,
       password: senha,
-      email_confirm: false
+      email_confirm: false // <- corrigido
     });
 
+    if (error?.message?.includes('User already registered')) {
+      return res.status(409).json({ error: 'Este email já está em uso.' });
+    }
     if (error) return res.status(400).json({ error: error.message });
     if (!data?.user?.id) return res.status(500).json({ error: 'ID do usuário não retornado.' });
 
@@ -45,6 +39,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ success: true });
   } catch (err) {
+    console.error('Erro interno:', err);
     return res.status(500).json({ error: 'Erro interno no servidor' });
   }
 }
