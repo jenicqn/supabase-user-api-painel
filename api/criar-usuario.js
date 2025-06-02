@@ -7,11 +7,11 @@ const supabase = createClient(
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
-    return res.status(200)
+    return res
       .setHeader('Access-Control-Allow-Origin', '*')
       .setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
       .setHeader('Access-Control-Allow-Headers', 'Content-Type')
-      .end();
+      .status(200).end();
   }
 
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -32,11 +32,17 @@ export default async function handler(req, res) {
     const { data, error } = await supabase.auth.admin.createUser({
       email,
       password: senha,
-      email_confirm: true,
+      email_confirm: true
     });
 
     if (error) {
+      console.error('Erro Supabase Auth:', error);
       return res.status(400).json({ error: error.message });
+    }
+
+    if (!data || !data.user || !data.user.id) {
+      console.error('Usuário criado, mas resposta inválida:', data);
+      return res.status(500).json({ error: 'ID do usuário não retornado.' });
     }
 
     const userId = data.user.id;
@@ -46,6 +52,7 @@ export default async function handler(req, res) {
       .insert([{ id: userId, nome, email, nivel }]);
 
     if (insertError) {
+      console.error('Erro ao inserir dados adicionais:', insertError);
       return res.status(500).json({ error: 'Usuário criado, mas falha ao salvar dados adicionais.' });
     }
 
