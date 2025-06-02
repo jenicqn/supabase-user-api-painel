@@ -40,7 +40,7 @@ export default async function handler(req, res) {
 
     const { error: insertError } = await supabase
       .from('usuarios_painel')
-      .insert([{ id: userId, nome, email, nivel }]);
+      .insert([{ id: userId, nome, email, acesso: nivel }])
 
     if (insertError) {
       return res.status(500).json({ error: 'Usuário criado, mas falha ao salvar dados adicionais.' });
