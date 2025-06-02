@@ -52,7 +52,7 @@ export default async function handler(req, res) {
     console.log('Payload para insert:', payload);
 
     const { error: insertError } = await supabase
-    .from('usuarios_painel')
+    .from('usuarios_painel2')
     .insert([{ id: userId, nome, email, nivel }]);
 
 
