@@ -7,8 +7,7 @@ const supabase = createClient(
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
-    return res
-      .status(200)
+    return res.status(200)
       .setHeader('Access-Control-Allow-Origin', '*')
       .setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
       .setHeader('Access-Control-Allow-Headers', 'Content-Type')
@@ -33,7 +32,7 @@ export default async function handler(req, res) {
     const { data, error } = await supabase.auth.admin.createUser({
       email,
       password: senha,
-      email_confirm: true
+      email_confirm: true,
     });
 
     if (error) {
@@ -44,16 +43,15 @@ export default async function handler(req, res) {
 
     const { error: insertError } = await supabase
       .from('usuarios_painel')
-      .insert([{ id: userId, nome, email, acesso: nivel }]); // nivel vira acesso
+      .insert([{ id: userId, nome, email, nivel }]);
 
     if (insertError) {
-      console.error('Erro ao inserir na tabela usuarios_painel:', insertError);
       return res.status(500).json({ error: 'Usuário criado, mas falha ao salvar dados adicionais.' });
     }
 
     return res.status(200).json({ success: true });
   } catch (err) {
-    console.error('Erro inesperado:', err);
+    console.error('Erro interno:', err);
     return res.status(500).json({ error: 'Erro interno no servidor' });
   }
 }
