@@ -1,4 +1,3 @@
-// api/atualizar-senha.js
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -7,18 +6,12 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
-  if (req.method === 'OPTIONS') {
-    return res
-      .status(200)
-      .setHeader('Access-Control-Allow-Origin', '*')
-      .setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-      .setHeader('Access-Control-Allow-Headers', 'Content-Type')
-      .end();
-  }
-
+  // Libera CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
@@ -27,22 +20,22 @@ export default async function handler(req, res) {
   const { id, senha } = req.body;
 
   if (!id || !senha || senha.length < 6) {
-    return res.status(400).json({ error: 'ID e senha são obrigatórios. A senha deve ter no mínimo 6 caracteres.' });
+    return res.status(400).json({ error: 'ID e senha válida são obrigatórios.' });
   }
 
   try {
-    const { data, error } = await supabase.auth.admin.updateUserById(id, {
-      password: senha
+    const { error } = await supabase.auth.admin.updateUserById(id, {
+      password: senha,
     });
 
     if (error) {
-      console.error("Erro ao atualizar senha:", error.message);
-      return res.status(400).json({ error: error.message });
+      console.error('Erro ao atualizar senha:', error.message);
+      return res.status(500).json({ error: 'Erro ao atualizar senha.' });
     }
 
     return res.status(200).json({ success: true });
   } catch (err) {
-    console.error("Erro interno:", err);
+    console.error('Erro interno:', err);
     return res.status(500).json({ error: 'Erro interno no servidor.' });
   }
 }
