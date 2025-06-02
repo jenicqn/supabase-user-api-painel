@@ -52,8 +52,9 @@ export default async function handler(req, res) {
     console.log('Payload para insert:', payload);
 
     const { error: insertError } = await supabase
-      .from('usuarios_painel')
-      .insert([payload]);
+    .from('usuarios_painel')
+    .insert([{ id: userId, nome, email, nivel }]);
+
 
     if (insertError) {
       console.error('Erro ao inserir dados adicionais:', insertError);
